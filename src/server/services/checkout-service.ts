@@ -1,9 +1,12 @@
 import { nanoid } from "nanoid";
 import type {
+  AuthoritativeCheckoutTotals,
   CheckoutCartSnapshotItem,
   CheckoutSessionData,
   PrepareCheckoutResult,
 } from "@/lib/checkout/types";
+import { buildCheckoutRequestFingerprint } from "@/lib/checkout/fingerprint";
+import { multiplyMoney, roundMoney, sumMoney } from "@/lib/checkout/money";
 import {
   getCheckoutSessionFromCookie,
   signCheckoutSession,
@@ -24,14 +27,107 @@ function mapCartSnapshot(
       productId: item.productId,
       sku: item.sku,
       name: item.name,
-      price: item.price,
+      price: roundMoney(item.price),
       imageUrl: item.imageUrl,
       quantity: item.quantity,
       month: item.month,
       gemstone: item.gemstone,
       material: item.material,
-      lineTotal: item.lineTotal,
+      lineTotal: roundMoney(item.lineTotal),
     }));
+}
+
+function buildAuthoritativeTotals(
+  subtotal: number,
+  shippingAmount: number,
+  taxAmount: number,
+  discountAmount: number,
+  totalsFinalized: boolean,
+): AuthoritativeCheckoutTotals {
+  return {
+    subtotal: roundMoney(subtotal),
+    shipping: roundMoney(shippingAmount),
+    tax: roundMoney(taxAmount),
+    discount: roundMoney(discountAmount),
+    total: sumMoney(subtotal, shippingAmount, taxAmount, -discountAmount),
+    currency: siteConfig.currency,
+    totalsFinalized,
+  };
+}
+
+export type RevalidatedCheckoutSession =
+  | { ok: true; session: CheckoutSessionData; totals: AuthoritativeCheckoutTotals }
+  | { ok: false; reason: "expired" | "invalid_cart" | "price_changed" | "inventory" };
+
+/**
+ * Reconstruct authoritative checkout state from trusted product data.
+ * Payment initialization (Phase 7) and order creation MUST call this — never trust session totals alone.
+ *
+ * Inventory is point-in-time only. Final atomic inventory check belongs at order creation (Phase 7/8).
+ */
+export async function revalidateCheckoutSession(
+  session: CheckoutSessionData,
+): Promise<RevalidatedCheckoutSession> {
+  if (session.expiresAt < Date.now()) {
+    return { ok: false, reason: "expired" };
+  }
+
+  const cartValidation = await validateCartItems(
+    session.cartItems.map((item) => ({
+      productSlug: item.productSlug,
+      quantity: item.quantity,
+    })),
+  );
+
+  if (!cartValidation.canCheckout) {
+    return { ok: false, reason: "inventory" };
+  }
+
+  const cartItems = mapCartSnapshot(cartValidation.items);
+  const subtotal = roundMoney(cartValidation.subtotal);
+
+  if (Math.abs(subtotal - session.subtotal) > 0.009) {
+    return { ok: false, reason: "price_changed" };
+  }
+
+  for (const validated of cartItems) {
+    const snapshot = session.cartItems.find((item) => item.productSlug === validated.productSlug);
+    if (!snapshot || snapshot.quantity !== validated.quantity) {
+      return { ok: false, reason: "inventory" };
+    }
+    if (Math.abs(snapshot.price - validated.price) > 0.009) {
+      return { ok: false, reason: "price_changed" };
+    }
+  }
+
+  const shipping = session.shippingMethodId
+    ? calculateShippingAmount(session.shippingMethodId)
+    : { amount: 0, label: "Calculated at checkout" };
+  const tax = calculateTax();
+  const totalsFinalized = shipping.amount > 0 && tax.amount > 0;
+
+  const totals = buildAuthoritativeTotals(
+    subtotal,
+    shipping.amount,
+    tax.amount,
+    session.discountAmount,
+    totalsFinalized,
+  );
+
+  return {
+    ok: true,
+    session: {
+      ...session,
+      cartItems,
+      subtotal: totals.subtotal,
+      shippingAmount: totals.shipping,
+      taxAmount: totals.tax,
+      total: totals.total,
+      totalsFinalized,
+      currency: siteConfig.currency,
+    },
+    totals,
+  };
 }
 
 export async function prepareCheckout(
@@ -46,8 +142,15 @@ export async function prepareCheckout(
   } = {},
 ): Promise<
   | { ok: true; result: PrepareCheckoutResult; session: CheckoutSessionData; token: string }
-  | { ok: false; error: string; issues?: string[]; fieldErrors?: Record<string, string> }
+  | {
+      ok: false;
+      error: string;
+      priceChanged?: boolean;
+      issues?: string[];
+      fieldErrors?: Record<string, string>;
+    }
 > {
+  const requestFingerprint = buildCheckoutRequestFingerprint(input);
   const cartValidation = await validateCartItems(input.items);
 
   if (!cartValidation.canCheckout) {
@@ -72,15 +175,30 @@ export async function prepareCheckout(
   }
 
   const cartItems = mapCartSnapshot(cartValidation.items);
-  const subtotal = cartValidation.subtotal;
+  const subtotal = roundMoney(cartValidation.subtotal);
   const priceChanged =
     typeof input.clientSubtotal === "number" &&
     Math.abs(input.clientSubtotal - subtotal) > 0.009;
 
+  if (priceChanged) {
+    return {
+      ok: false,
+      error: "One or more items in your cart have changed in price. Please review your order.",
+      priceChanged: true,
+    };
+  }
+
   const shipping = calculateShippingAmount(input.shippingMethodId);
   const tax = calculateTax();
   const discountAmount = 0;
-  const total = subtotal + shipping.amount + tax.amount - discountAmount;
+  const totalsFinalized = shipping.amount > 0 && tax.amount > 0;
+  const totals = buildAuthoritativeTotals(
+    subtotal,
+    shipping.amount,
+    tax.amount,
+    discountAmount,
+    totalsFinalized,
+  );
 
   const billingAddress = input.billingSameAsShipping
     ? input.shippingAddress
@@ -90,7 +208,9 @@ export async function prepareCheckout(
   if (
     input.idempotencyKey &&
     existingSession?.idempotencyKey === input.idempotencyKey &&
-    existingSession.status === "ready_for_payment"
+    existingSession.requestFingerprint === requestFingerprint &&
+    existingSession.status === "ready_for_payment" &&
+    existingSession.expiresAt >= Date.now()
   ) {
     const token = await signCheckoutSession(existingSession);
     return {
@@ -105,14 +225,16 @@ export async function prepareCheckout(
   const session: CheckoutSessionData = {
     id: nanoid(),
     idempotencyKey: input.idempotencyKey ?? nanoid(),
+    requestFingerprint,
     status: "ready_for_payment",
     cartItems,
-    subtotal,
-    shippingAmount: shipping.amount,
-    taxAmount: tax.amount,
-    discountAmount,
-    total,
+    subtotal: totals.subtotal,
+    shippingAmount: totals.shipping,
+    taxAmount: totals.tax,
+    discountAmount: totals.discount,
+    total: totals.total,
     currency: siteConfig.currency,
+    totalsFinalized,
     shippingMethodId: input.shippingMethodId,
     shippingMethodName: shippingMethod.name,
     email: input.contact.email,
@@ -123,7 +245,7 @@ export async function prepareCheckout(
     orderNotes: input.orderNotes,
     marketingConsent: input.marketingConsent,
     termsAccepted: input.termsAccepted,
-    priceChanged,
+    priceChanged: false,
     utmSource: attribution.utmSource,
     utmMedium: attribution.utmMedium,
     utmCampaign: attribution.utmCampaign,
@@ -161,8 +283,11 @@ function buildPrepareResult(
       currency: session.currency,
       shippingLabel,
       taxLabel,
+      totalsFinalized: session.totalsFinalized,
     },
-    priceChanged: session.priceChanged,
+    priceChanged: false,
     canProceed: true,
   };
 }
+
+export { multiplyMoney, roundMoney, sumMoney };

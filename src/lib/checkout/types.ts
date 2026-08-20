@@ -34,6 +34,7 @@ export type CheckoutSessionStatus = "open" | "ready_for_payment" | "expired";
 export type CheckoutSessionData = {
   id: string;
   idempotencyKey: string;
+  requestFingerprint?: string;
   status: CheckoutSessionStatus;
   cartItems: CheckoutCartSnapshotItem[];
   subtotal: number;
@@ -42,6 +43,8 @@ export type CheckoutSessionData = {
   discountAmount: number;
   total: number;
   currency: string;
+  /** False until shipping and tax are calculated with real providers. */
+  totalsFinalized: boolean;
   shippingMethodId: string | null;
   shippingMethodName: string | null;
   email: string;
@@ -75,8 +78,20 @@ export type PrepareCheckoutResult = {
     currency: string;
     shippingLabel: string;
     taxLabel: string;
+    totalsFinalized: boolean;
   };
   priceChanged: boolean;
   canProceed: boolean;
   issues?: string[];
+};
+
+/** Authoritative payable breakdown — server source of truth for Phase 7 payment. */
+export type AuthoritativeCheckoutTotals = {
+  subtotal: number;
+  shipping: number;
+  tax: number;
+  discount: number;
+  total: number;
+  currency: string;
+  totalsFinalized: boolean;
 };

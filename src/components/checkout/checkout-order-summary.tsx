@@ -16,6 +16,8 @@ type CheckoutOrderSummaryProps = {
   taxAmount?: number;
   total?: number;
   showTotal?: boolean;
+  /** Shown when shipping/tax are not yet finalized (MVP placeholder state). */
+  estimatedTotal?: number;
   compact?: boolean;
 };
 
@@ -33,6 +35,7 @@ export function CheckoutOrderSummary({
   shippingAmount,
   taxAmount,
   showTotal = false,
+  estimatedTotal,
   compact = false,
 }: CheckoutOrderSummaryProps) {
   const activeItems = items.filter((item) => item.quantity > 0);
@@ -110,6 +113,11 @@ export function CheckoutOrderSummary({
             <span className="product-price text-2xl">
               {formatCartPrice(subtotal + (shippingAmount ?? 0) + (taxAmount ?? 0))}
             </span>
+          </div>
+        ) : estimatedTotal !== undefined ? (
+          <div className="flex justify-between gap-4 border-t border-line pt-4 text-base">
+            <span className="text-muted">Estimated total</span>
+            <span className="text-brand">{formatCartPrice(estimatedTotal)}</span>
           </div>
         ) : (
           <p className="pt-2 text-xs text-muted">

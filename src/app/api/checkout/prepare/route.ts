@@ -10,6 +10,18 @@ import {
 import { checkoutConfig } from "@/lib/config/checkout";
 import { prepareCheckout } from "@/server/services/checkout-service";
 
+function isSameOriginRequest(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  const host = request.headers.get("host");
+  if (!host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 function readAttributionFromCookie(cookieHeader: string | null) {
   if (!cookieHeader) return {};
 
@@ -37,6 +49,10 @@ function readAttributionFromCookie(cookieHeader: string | null) {
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json({ ok: false, error: "Invalid request origin." }, { status: 403 });
+    }
+
     const body = await request.json();
     const parsed = prepareCheckoutSchema.safeParse(body);
 
@@ -66,7 +82,7 @@ export async function POST(request: Request) {
     const prepared = await prepareCheckout(parsed.data, attribution);
 
     if (!prepared.ok) {
-      return NextResponse.json(prepared, { status: 400 });
+      return NextResponse.json(prepared, { status: prepared.priceChanged ? 409 : 400 });
     }
 
     const response = NextResponse.json({

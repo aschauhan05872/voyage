@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
 import { getCheckoutSessionFromCookie } from "@/lib/checkout/session-cookie";
+import { revalidateCheckoutSession } from "@/server/services/checkout-service";
 
 export async function CheckoutPaymentPageContent() {
   const session = await getCheckoutSessionFromCookie();
@@ -9,6 +10,18 @@ export async function CheckoutPaymentPageContent() {
   if (!session || session.status !== "ready_for_payment") {
     redirect("/checkout");
   }
+
+  const revalidated = await revalidateCheckoutSession(session);
+
+  if (!revalidated.ok) {
+    redirect(
+      revalidated.reason === "expired"
+        ? "/checkout"
+        : "/cart",
+    );
+  }
+
+  const { session: authoritativeSession, totals } = revalidated;
 
   return (
     <section className="section-padding-lg">
@@ -22,27 +35,29 @@ export async function CheckoutPaymentPageContent() {
           <div className="space-y-6">
             <div className="border border-line p-6">
               <p className="text-sm text-muted">Prepared for</p>
-              <p className="mt-2 text-brand">{session.email}</p>
+              <p className="mt-2 text-brand">{authoritativeSession.email}</p>
               <p className="mt-4 text-sm text-muted">Shipping to</p>
               <p className="mt-2 text-sm text-brand">
-                {session.shippingAddress.firstName} {session.shippingAddress.lastName}
+                {authoritativeSession.shippingAddress.firstName}{" "}
+                {authoritativeSession.shippingAddress.lastName}
                 <br />
-                {session.shippingAddress.line1}
-                {session.shippingAddress.line2 ? (
+                {authoritativeSession.shippingAddress.line1}
+                {authoritativeSession.shippingAddress.line2 ? (
                   <>
                     <br />
-                    {session.shippingAddress.line2}
+                    {authoritativeSession.shippingAddress.line2}
                   </>
                 ) : null}
                 <br />
-                {session.shippingAddress.city}, {session.shippingAddress.state}{" "}
-                {session.shippingAddress.postalCode}
+                {authoritativeSession.shippingAddress.city},{" "}
+                {authoritativeSession.shippingAddress.state}{" "}
+                {authoritativeSession.shippingAddress.postalCode}
               </p>
             </div>
 
             <p className="text-sm text-muted">
-              Payment processing will be connected in Phase 7. Your selections and totals have
-              been validated on our server.
+              Payment processing will be connected in Phase 7. Totals shown here were
+              revalidated against current product prices and inventory before display.
             </p>
 
             <Link href="/checkout" className="btn-secondary inline-flex">
@@ -51,15 +66,16 @@ export async function CheckoutPaymentPageContent() {
           </div>
 
           <CheckoutOrderSummary
-            items={session.cartItems}
-            subtotal={session.subtotal}
+            items={authoritativeSession.cartItems}
+            subtotal={totals.subtotal}
             shippingLabel={
-              session.shippingAmount > 0 ? undefined : "Calculated at checkout"
+              totals.shipping > 0 ? undefined : "Calculated at checkout"
             }
-            taxLabel={session.taxAmount > 0 ? undefined : "Calculated at checkout"}
-            shippingAmount={session.shippingAmount}
-            taxAmount={session.taxAmount}
-            showTotal
+            taxLabel={totals.tax > 0 ? undefined : "Calculated at checkout"}
+            shippingAmount={totals.shipping}
+            taxAmount={totals.tax}
+            showTotal={totals.totalsFinalized}
+            estimatedTotal={totals.totalsFinalized ? undefined : totals.subtotal}
           />
         </div>
       </div>

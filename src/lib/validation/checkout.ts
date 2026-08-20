@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { checkoutConfig, US_STATES } from "@/lib/config/checkout";
+
+const US_STATE_CODES = new Set<string>(US_STATES.map((state) => state.code));
 
 const nameField = z
   .string()
@@ -25,14 +28,19 @@ export const checkoutAddressSchema = z.object({
   line1: addressLine,
   line2: optionalAddressLine,
   city: z.string().trim().min(1, "City is required.").max(80),
-  state: z.string().trim().min(2, "State is required.").max(80),
+  state: z
+    .string()
+    .trim()
+    .min(2, "State is required.")
+    .max(2, "Please select a valid state.")
+    .refine((value) => US_STATE_CODES.has(value), "Please select a valid state."),
   postalCode: z
     .string()
     .trim()
     .min(5, "Please enter a valid ZIP code.")
     .max(10, "Please enter a valid ZIP code.")
     .regex(/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code."),
-  country: z.string().trim().min(2).max(80).default("US"),
+  country: z.literal(checkoutConfig.defaultCountry),
   phone: z.string().trim().max(30).optional(),
 });
 

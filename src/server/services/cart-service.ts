@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/config/site";
+import { multiplyMoney, roundMoney } from "@/lib/checkout/money";
 import type {
   CartValidationRequestItem,
   CartValidationResult,
@@ -61,7 +62,7 @@ export async function validateCartItems(
           : `Only ${maxQuantity} available. Quantity adjusted.`;
     }
 
-    const lineTotal = effectiveQuantity * product.price;
+    const lineTotal = multiplyMoney(product.price, effectiveQuantity);
     subtotal += lineTotal;
 
     validated.push({
@@ -90,7 +91,7 @@ export async function validateCartItems(
 
   return {
     items: validated,
-    subtotal,
+    subtotal: roundMoney(subtotal),
     currency: siteConfig.currency,
     canCheckout,
   };
