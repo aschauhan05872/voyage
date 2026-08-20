@@ -12,17 +12,24 @@ export type ProductSummary = {
   compareAtPrice?: number;
   imageUrl: string;
   imageAlt: string;
+  featured?: boolean;
+  createdAt?: string;
+  available?: boolean;
 };
 
-/** Featured slugs — only products that exist in birthstone catalog. */
-export const featuredProductSlugs = [
+/** Products currently available to purchase at launch. Expand as inventory goes live. */
+export const availableProductSlugs = [
   "february-birthstone-amethyst-necklace",
   "june-birthstone-moonstone-necklace",
   "january-birthstone-garnet-necklace",
 ] as const;
 
+/** Featured slugs for homepage — subset of available products. */
+export const featuredProductSlugs = availableProductSlugs;
+
 function toProductSummary(stone: Birthstone): ProductSummary {
   const name = `${stone.month} Birthstone ${stone.gemstone} Necklace`;
+  const isAvailable = (availableProductSlugs as readonly string[]).includes(stone.productSlug);
   return {
     id: `catalog-${stone.monthSlug}`,
     slug: stone.productSlug,
@@ -34,6 +41,8 @@ function toProductSummary(stone: Birthstone): ProductSummary {
     compareAtPrice: 109,
     imageUrl: stone.image ?? `${imageConfig.productFallback}`,
     imageAlt: name,
+    featured: (featuredProductSlugs as readonly string[]).includes(stone.productSlug),
+    available: isAvailable,
   };
 }
 
@@ -41,6 +50,12 @@ export const productCatalog: ProductSummary[] = birthstones.map(toProductSummary
 
 export function getCatalogProductBySlug(slug: string): ProductSummary | undefined {
   return productCatalog.find((product) => product.slug === slug);
+}
+
+export function getCatalogAvailableProducts(): ProductSummary[] {
+  return availableProductSlugs
+    .map((slug) => getCatalogProductBySlug(slug))
+    .filter((product): product is ProductSummary => Boolean(product));
 }
 
 export function getCatalogFeaturedProducts(): ProductSummary[] {

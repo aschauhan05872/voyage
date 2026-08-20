@@ -7,6 +7,8 @@ export type AnalyticsEvent =
   | "product_view"
   | "birthstone_selected"
   | "select_item"
+  | "filter_used"
+  | "sort_used"
   | "add_to_cart"
   | "remove_from_cart"
   | "view_cart"

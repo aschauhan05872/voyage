@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { birthstones } from "../src/lib/data/birthstones";
-import { featuredProductSlugs } from "../src/lib/data/product-catalog";
+import { availableProductSlugs } from "../src/lib/data/product-catalog";
 
 const prisma = new PrismaClient();
 
@@ -23,7 +23,7 @@ async function main() {
     },
   });
 
-  const featuredSet = new Set<string>(featuredProductSlugs);
+  const featuredSet = new Set<string>(availableProductSlugs);
 
   for (const [index, stone] of birthstones.entries()) {
     const sku = `VOY-BS-${String(index + 1).padStart(2, "0")}`;

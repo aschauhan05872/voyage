@@ -9,6 +9,7 @@ import { siteConfig } from "@/lib/config/site";
 type ProductCardProps = {
   product: ProductSummary;
   priority?: boolean;
+  availabilityLabel?: string;
 };
 
 function formatPrice(amount: number): string {
@@ -20,7 +21,11 @@ function formatPrice(amount: number): string {
   }).format(amount);
 }
 
-export function ProductCard({ product, priority = false }: ProductCardProps) {
+export function ProductCard({
+  product,
+  priority = false,
+  availabilityLabel = "Available",
+}: ProductCardProps) {
   return (
     <article className="group flex h-full flex-col">
       <Link
@@ -53,6 +58,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           </p>
           <h3 className="display-font mt-1 text-xl text-brand">{product.name}</h3>
           <p className="mt-2 text-sm font-medium">{formatPrice(product.price)}</p>
+          <p className="mt-1 text-xs text-muted">{availabilityLabel}</p>
           <span className="mt-4 inline-flex text-xs uppercase tracking-[0.14em] text-brand underline-offset-4 group-hover:underline">
             View piece
           </span>
