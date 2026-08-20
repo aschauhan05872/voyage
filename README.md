@@ -53,21 +53,40 @@ cp .env.example .env
 # Edit DATABASE_URL and secrets
 
 npm run db:generate
-npm run db:migrate
-npm run db:seed
+npm run db:migrate    # development: creates/applies migrations
+npm run db:seed       # optional: local catalog + admin bootstrap
 npm run dev
 ```
+
+## Deployment
+
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for production migration automation.
+
+Production release order:
+
+```bash
+npm ci
+npm run deploy:prepare   # prisma generate + migrate deploy
+npm run build
+npm run start
+```
+
+Use `npm run db:migrate` in development when changing `prisma/schema.prisma`. Use `npm run deploy:migrate` (or `npm run db:migrate:deploy`) in production — never `db push` or `migrate dev`.
 
 ## Scripts
 
 ```bash
 npm run dev
 npm run build
+npm run start
 npm run lint
 npm run typecheck
 npm run db:generate
-npm run db:migrate
-npm run db:seed
+npm run db:migrate          # development
+npm run db:migrate:deploy     # production (same as db:deploy)
+npm run deploy:migrate        # production with DATABASE_URL guard
+npm run deploy:prepare        # generate + migrate deploy
+npm run db:seed               # development/staging bootstrap only
 ```
 
 ## Environment
