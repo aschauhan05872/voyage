@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" role="img" aria-label="Editorial story placeholder">
+  <rect width="900" height="700" fill="#ebe4d7"/>
+  <rect x="80" y="80" width="740" height="540" fill="#102a24" opacity="0.92"/>
+  <circle cx="450" cy="330" r="90" fill="#c6a66b" opacity="0.35"/>
+  <rect x="330" y="430" width="240" height="8" fill="#f7f2e9" opacity="0.5"/>
+</svg>

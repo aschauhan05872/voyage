@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   const productRoutes = birthstones.map((stone) => ({
-    url: `${base}/products/${stone.slug}`,
+    url: `${base}/products/${stone.productSlug}`,
     lastModified: new Date(),
   }));
 

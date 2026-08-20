@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { birthstones } from "../src/lib/data/birthstones";
+import { featuredProductSlugs } from "../src/lib/data/product-catalog";
 
 const prisma = new PrismaClient();
 
@@ -22,17 +23,19 @@ async function main() {
     },
   });
 
+  const featuredSet = new Set<string>(featuredProductSlugs);
+
   for (const [index, stone] of birthstones.entries()) {
     const sku = `VOY-BS-${String(index + 1).padStart(2, "0")}`;
     const name = `${stone.month} Birthstone ${stone.gemstone} Necklace`;
 
     await prisma.product.upsert({
-      where: { slug: stone.slug },
+      where: { slug: stone.productSlug },
       update: {},
       create: {
         sku,
         name,
-        slug: stone.slug,
+        slug: stone.productSlug,
         month: stone.month,
         gemstone: stone.gemstone,
         material: "925 Sterling Silver",
@@ -43,13 +46,13 @@ async function main() {
         careInstructions: "Store in the included pouch. Avoid harsh chemicals and prolonged water exposure.",
         seoTitle: `${name} | VOYAGE`,
         seoDescription: `Shop the ${stone.month} ${stone.gemstone} birthstone necklace from VOYAGE.`,
-        featured: index < 4,
+        featured: featuredSet.has(stone.productSlug),
         active: true,
         inventory: { create: { quantity: 100 } },
         images: {
           create: [
             {
-              url: `/placeholders/birthstones/${stone.slug}.jpg`,
+              url: stone.image,
               alt: name,
               sortOrder: 0,
               type: "hero",
