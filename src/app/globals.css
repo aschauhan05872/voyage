@@ -76,20 +76,44 @@ select:focus-visible {
   padding-block: clamp(3rem, 8vw, 6rem);
 }
 
+.section-padding-lg {
+  padding-block: clamp(4rem, 10vw, 7rem);
+}
+
+.editorial-lead {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.text-link {
+  color: var(--forest-green);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  transition: color 0.3s ease;
+}
+
+.text-link:hover {
+  color: #0a1f1a;
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 3rem;
-  padding-inline: 1.5rem;
+  padding-inline: 1.75rem;
   background: var(--forest-green);
   color: var(--warm-ivory);
   border: 1px solid var(--forest-green);
-  transition: background 0.2s ease, color 0.2s ease;
+  letter-spacing: 0.04em;
+  transition: background 0.35s ease, border-color 0.35s ease;
 }
 
 .btn-primary:hover {
   background: #0a1f1a;
+  border-color: #0a1f1a;
 }
 
 .btn-secondary {
@@ -97,20 +121,46 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   min-height: 3rem;
-  padding-inline: 1.5rem;
+  padding-inline: 1.75rem;
   background: transparent;
   color: var(--forest-green);
-  border: 1px solid var(--forest-green);
-  transition: background 0.2s ease, color 0.2s ease;
+  border: 1px solid rgba(16, 42, 36, 0.35);
+  letter-spacing: 0.04em;
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
 }
 
 .btn-secondary:hover {
   background: var(--forest-green);
   color: var(--warm-ivory);
+  border-color: var(--forest-green);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding-inline: 0.25rem;
+  background: transparent;
+  color: var(--forest-green);
+  border: none;
+  letter-spacing: 0.02em;
+  transition: color 0.3s ease;
+}
+
+.btn-ghost:hover {
+  color: #0a1f1a;
+}
+
+.product-price {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1;
+  color: var(--forest-green);
 }
 
 .card-surface {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.4);
   border: 1px solid var(--line);
 }
 

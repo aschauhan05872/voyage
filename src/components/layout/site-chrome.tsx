@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/config/site";
 const shopLinks = [
   { href: "/collections/birthstones", label: "Birthstone Collection" },
   { href: "/gifts", label: "Gifts" },
-  { href: "/collections/birthstones?featured=true", label: "Best Sellers" },
+  { href: "/collections/birthstones?featured=true", label: "Featured Pieces" },
 ];
 
 const helpLinks = [

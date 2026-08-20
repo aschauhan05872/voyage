@@ -40,7 +40,6 @@ async function main() {
         gemstone: stone.gemstone,
         material: "925 Sterling Silver",
         price: 89,
-        compareAtPrice: 109,
         description: `A ${stone.gemstone.toLowerCase()} birthstone pendant necklace in 925 sterling silver.`,
         story: `Traditionally associated with ${stone.month}, ${stone.gemstone} is often symbolized as a stone of personal meaning and celebration.`,
         careInstructions: "Store in the included pouch. Avoid harsh chemicals and prolonged water exposure.",

@@ -223,7 +223,6 @@ export function CollectionView({ data }: CollectionViewProps) {
                 <ProductCard
                   product={product}
                   priority={index < 2}
-                  availabilityLabel="Available"
                 />
               </li>
             ))}

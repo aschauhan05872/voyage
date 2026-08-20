@@ -5,6 +5,7 @@
 export type AnalyticsEvent =
   | "page_view"
   | "product_view"
+  | "view_item"
   | "birthstone_selected"
   | "select_item"
   | "filter_used"

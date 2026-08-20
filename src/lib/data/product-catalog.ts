@@ -38,7 +38,6 @@ function toProductSummary(stone: Birthstone): ProductSummary {
     gemstone: stone.gemstone,
     material: "925 Sterling Silver",
     price: 89,
-    compareAtPrice: 109,
     imageUrl: stone.image ?? `${imageConfig.productFallback}`,
     imageAlt: name,
     featured: (featuredProductSlugs as readonly string[]).includes(stone.productSlug),
