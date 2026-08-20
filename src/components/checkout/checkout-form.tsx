@@ -40,7 +40,7 @@ const emptyAddress = (): CheckoutAddressInput => ({
 });
 
 const initialFormState = (): FormState => ({
-  contact: { email: "", phone: "" },
+  contact: { email: "", phone: "", secondaryPhone: "" },
   shippingAddress: emptyAddress(),
   billingSameAsShipping: true,
   billingAddress: emptyAddress(),
@@ -61,7 +61,7 @@ function FieldError({ message }: { message?: string }) {
 
 export function CheckoutForm() {
   const router = useRouter();
-  const { items, subtotal, validated, validating, canCheckout } = useCart();
+  const { items, subtotal, validated, validating, canCheckout, clear } = useCart();
   const { activeItems } = useCartLineActions();
   const shippingMethods = useMemo(() => getActiveShippingMethods(), []);
 
@@ -107,10 +107,30 @@ export function CheckoutForm() {
       }));
       return false;
     }
-    if (checkoutConfig.phoneRequired && !form.contact.phone?.trim()) {
+    if (checkoutConfig.primaryPhoneRequired && !form.contact.phone?.trim()) {
       setFieldErrors((current) => ({
         ...current,
         "contact.phone": "Phone number is required.",
+      }));
+      return false;
+    }
+    if (
+      form.contact.phone?.trim() &&
+      !/^[\d\s().+\-]{7,30}$/.test(form.contact.phone.trim())
+    ) {
+      setFieldErrors((current) => ({
+        ...current,
+        "contact.phone": "Please enter a valid phone number.",
+      }));
+      return false;
+    }
+    if (
+      form.contact.secondaryPhone?.trim() &&
+      !/^[\d\s().+\-]{7,30}$/.test(form.contact.secondaryPhone.trim())
+    ) {
+      setFieldErrors((current) => ({
+        ...current,
+        "contact.secondaryPhone": "Please enter a valid phone number.",
       }));
       return false;
     }
@@ -207,7 +227,7 @@ export function CheckoutForm() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/checkout/prepare", {
+      const response = await fetch("/api/checkout/complete-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -217,7 +237,8 @@ export function CheckoutForm() {
           })),
           contact: {
             email: form.contact.email.trim(),
-            phone: form.contact.phone?.trim() || undefined,
+            phone: form.contact.phone.trim(),
+            secondaryPhone: form.contact.secondaryPhone?.trim() || undefined,
           },
           shippingAddress: {
             ...form.shippingAddress,
@@ -247,7 +268,9 @@ export function CheckoutForm() {
         fieldErrors?: Record<string, string>;
         issues?: string[];
         priceChanged?: boolean;
-        summary?: { total: number };
+        requestNumber?: string;
+        persisted?: boolean;
+        devOnly?: boolean;
       };
 
       if (!response.ok || !data.ok) {
@@ -261,22 +284,18 @@ export function CheckoutForm() {
         return;
       }
 
-      if (data.priceChanged) {
-        setPriceChanged(true);
-        setFormError(
-          "One or more items in your cart have changed in price. Please review your order.",
-        );
-        return;
-      }
-
-      trackEvent("checkout_payment_continue", {
+      trackEvent("order_assistance_requested", {
         cart_value: subtotal,
         currency: siteConfig.currency,
         item_count: items.reduce((sum, item) => sum + item.quantity, 0),
         shipping_method: form.shippingMethodId,
       });
 
-      router.push("/checkout/payment");
+      if (data.persisted) {
+        clear();
+      }
+
+      router.push("/checkout/confirmation");
     } catch {
       setFormError("We couldn't prepare your checkout right now. Please try again.");
     } finally {
@@ -323,17 +342,36 @@ export function CheckoutForm() {
           </div>
           <div className="sm:col-span-2">
             <label htmlFor="checkout-phone" className={labelClass}>
-              Phone{checkoutConfig.phoneRequired ? "" : " (optional)"}
+              Phone
             </label>
             <input
               id="checkout-phone"
               type="tel"
               autoComplete="tel"
-              value={form.contact.phone ?? ""}
+              required
+              value={form.contact.phone}
               onChange={(event) => updateContact("phone", event.target.value)}
+              onBlur={validateContactLocally}
               className={inputClass}
             />
             <FieldError message={fieldErrors["contact.phone"]} />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="checkout-secondary-phone" className={labelClass}>
+              Secondary phone (optional)
+            </label>
+            <p className="mb-2 text-sm text-muted">
+              Add another number if you&apos;d prefer us to reach you there.
+            </p>
+            <input
+              id="checkout-secondary-phone"
+              type="tel"
+              autoComplete="tel"
+              value={form.contact.secondaryPhone ?? ""}
+              onChange={(event) => updateContact("secondaryPhone", event.target.value)}
+              className={inputClass}
+            />
+            <FieldError message={fieldErrors["contact.secondaryPhone"]} />
           </div>
         </div>
       </section>
@@ -702,7 +740,7 @@ export function CheckoutForm() {
         disabled={submitting || validating || !canCheckout}
         className="btn-primary w-full sm:w-auto sm:min-w-[240px]"
       >
-        {submitting ? "Preparing..." : "Continue to Payment"}
+        {submitting ? "Submitting..." : "Complete Your Order Request"}
       </button>
     </form>
   );

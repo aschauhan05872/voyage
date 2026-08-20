@@ -44,6 +44,13 @@ export const checkoutAddressSchema = z.object({
   phone: z.string().trim().max(30).optional(),
 });
 
+const phoneField = z
+  .string()
+  .trim()
+  .min(7, "Please enter a valid phone number.")
+  .max(30, "Please enter a valid phone number.")
+  .regex(/^[\d\s().+\-]+$/, "Please enter a valid phone number.");
+
 export const checkoutContactSchema = z.object({
   email: z
     .string()
@@ -51,12 +58,11 @@ export const checkoutContactSchema = z.object({
     .min(1, "Email is required.")
     .max(254, "Please enter a valid email address.")
     .pipe(z.email({ message: "Please enter a valid email address." })),
-  phone: z
-    .string()
-    .trim()
-    .max(30, "Please enter a valid phone number.")
-    .optional()
-    .transform((value) => value || undefined),
+  phone: phoneField,
+  secondaryPhone: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    phoneField.optional(),
+  ),
 });
 
 export const prepareCheckoutSchema = z

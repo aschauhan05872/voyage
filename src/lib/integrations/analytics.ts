@@ -19,6 +19,7 @@ export type AnalyticsEvent =
   | "checkout_address_entered"
   | "checkout_shipping_selected"
   | "checkout_payment_continue"
+  | "order_assistance_requested"
   | "payment_started"
   | "purchase"
   | "email_signup"

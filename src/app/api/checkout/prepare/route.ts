@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (checkoutConfig.phoneRequired && !parsed.data.contact.phone) {
+    if (checkoutConfig.primaryPhoneRequired && !parsed.data.contact.phone) {
       return NextResponse.json(
         {
           ok: false,

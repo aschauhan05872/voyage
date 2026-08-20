@@ -3,7 +3,8 @@
 export const checkoutConfig = {
   defaultCountry: "US",
   defaultCountryLabel: "United States",
-  phoneRequired: process.env.NEXT_PUBLIC_CHECKOUT_PHONE_REQUIRED === "true",
+  /** Primary phone is required for the order assistance flow. */
+  primaryPhoneRequired: true,
 } as const;
 
 export const US_STATES = [

@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
-import { CheckoutPaymentPageContent } from "@/components/checkout/checkout-payment-page";
+import { redirect } from "next/navigation";
+import { getAssistanceConfirmationFromCookie } from "@/lib/checkout/confirmation-cookie";
 
-export const metadata: Metadata = {
-  title: "Payment | VOYAGE",
-  robots: { index: false, follow: false },
-};
-
-export default function CheckoutPaymentPage() {
-  return <CheckoutPaymentPageContent />;
+export default async function CheckoutPaymentPage() {
+  const confirmation = await getAssistanceConfirmationFromCookie();
+  if (confirmation) {
+    redirect("/checkout/confirmation");
+  }
+  redirect("/checkout");
 }

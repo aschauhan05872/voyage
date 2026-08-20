@@ -308,3 +308,33 @@ model BusinessSettings {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model OrderAssistanceRequest {
+  id                String   @id @default(cuid())
+  requestNumber     String   @unique
+  email             String
+  primaryPhone      String
+  secondaryPhone    String?
+  shippingAddress   Json
+  billingAddress    Json
+  items             Json
+  subtotal          Decimal  @db.Decimal(10, 2)
+  currency          String   @default("USD")
+  notes             String?
+  status            String   @default("PAYMENT_ASSISTANCE_REQUIRED")
+  checkoutSessionId String?
+  idempotencyKey    String?  @unique
+  utmSource         String?
+  utmMedium         String?
+  utmCampaign       String?
+  utmContent        String?
+  utmTerm           String?
+  referrer          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([requestNumber])
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}

@@ -239,6 +239,7 @@ export async function prepareCheckout(
     shippingMethodName: shippingMethod.name,
     email: input.contact.email,
     phone: input.contact.phone,
+    secondaryPhone: input.contact.secondaryPhone,
     shippingAddress: input.shippingAddress,
     billingAddress,
     billingSameAsShipping: input.billingSameAsShipping,

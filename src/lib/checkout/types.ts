@@ -12,7 +12,8 @@ export type CheckoutAddress = {
 
 export type CheckoutContact = {
   email: string;
-  phone?: string;
+  phone: string;
+  secondaryPhone?: string;
 };
 
 export type CheckoutCartSnapshotItem = {
@@ -29,7 +30,7 @@ export type CheckoutCartSnapshotItem = {
   lineTotal: number;
 };
 
-export type CheckoutSessionStatus = "open" | "ready_for_payment" | "expired";
+export type CheckoutSessionStatus = "open" | "ready_for_payment" | "assistance_submitted" | "expired";
 
 export type CheckoutSessionData = {
   id: string;
@@ -48,7 +49,8 @@ export type CheckoutSessionData = {
   shippingMethodId: string | null;
   shippingMethodName: string | null;
   email: string;
-  phone?: string;
+  phone: string;
+  secondaryPhone?: string;
   shippingAddress: CheckoutAddress;
   billingAddress: CheckoutAddress;
   billingSameAsShipping: boolean;
@@ -56,6 +58,7 @@ export type CheckoutSessionData = {
   marketingConsent: boolean;
   termsAccepted: boolean;
   priceChanged: boolean;
+  assistanceRequestNumber?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
