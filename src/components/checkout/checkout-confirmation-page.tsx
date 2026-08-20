@@ -32,11 +32,9 @@ export async function CheckoutConfirmationContent() {
           number provided during checkout to help you complete your order securely.
         </p>
 
-        {!confirmation.persisted ? (
+        {!confirmation.persisted && process.env.NODE_ENV === "production" ? (
           <p className="mt-6 border border-line bg-[rgba(16,42,36,0.03)] px-4 py-3 text-sm text-muted">
-            {process.env.NODE_ENV === "production"
-              ? "We couldn't save your request. Please try again or contact VOYAGE."
-              : "Development mode: request storage is unavailable. Production deployment requires persistent request storage."}
+            We couldn&apos;t save your request. Please try again or contact VOYAGE.
           </p>
         ) : null}
 

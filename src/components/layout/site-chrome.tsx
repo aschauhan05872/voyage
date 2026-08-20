@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { CartHeaderLink } from "@/components/cart/cart-header-link";
+import { FooterEmailSignup } from "@/components/home/email-signup";
 import { siteConfig } from "@/lib/config/site";
 
 const shopLinks = [
   { href: "/collections/birthstones", label: "Birthstone Collection" },
-  { href: "/gifts", label: "Gifts" },
   { href: "/collections/birthstones?featured=true", label: "Featured Pieces" },
 ];
 
@@ -27,40 +26,6 @@ const legalLinks = [
   { href: "/terms", label: "Terms" },
 ];
 
-export function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-line bg-surface/95 backdrop-blur-md">
-      <div className="container-shell flex min-h-16 items-center justify-between gap-4 py-3">
-        <Link href="/" className="display-font text-2xl tracking-[0.18em] text-brand">
-          VOYAGE
-        </Link>
-
-        <nav
-          className="hidden items-center gap-8 text-sm uppercase tracking-[0.12em] md:flex"
-          aria-label="Primary"
-        >
-          <Link href="/collections/birthstones" className="hover:text-accent">
-            Birthstones
-          </Link>
-          <Link href="/gifts" className="hover:text-accent">
-            Gifts
-          </Link>
-          <Link href="/our-story" className="hover:text-accent">
-            Our Story
-          </Link>
-          <Link href="/journal" className="hover:text-accent">
-            Journal
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-4 text-sm uppercase tracking-[0.12em]">
-          <CartHeaderLink />
-        </div>
-      </div>
-    </header>
-  );
-}
-
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-line bg-brand text-[var(--warm-ivory)]">
@@ -70,10 +35,7 @@ export function SiteFooter() {
           <p className="mt-3 max-w-sm text-sm text-[var(--warm-taupe)]">
             {siteConfig.tagline}
           </p>
-          <p className="mt-6 text-sm">{siteConfig.emailCapture.heading}</p>
-          <p className="text-xs text-[var(--warm-taupe)]">
-            Email signup coming in Phase 10.
-          </p>
+          <FooterEmailSignup />
         </div>
 
         <FooterColumn title="Shop" links={shopLinks} />

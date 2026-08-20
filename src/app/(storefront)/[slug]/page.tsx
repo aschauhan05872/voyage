@@ -1,4 +1,5 @@
 import staticPages from "@/lib/data/static-pages";
+import { notFound } from "next/navigation";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -11,7 +12,7 @@ export default async function StaticContentPage({ params }: Props) {
   const page = staticPages.find((entry) => entry.slug === slug);
 
   if (!page) {
-    return null;
+    notFound();
   }
 
   return (

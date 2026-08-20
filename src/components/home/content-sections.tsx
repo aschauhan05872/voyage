@@ -14,6 +14,10 @@ const socialLinks = [
 export function SocialSection() {
   const availableLinks = socialLinks.filter((link) => siteConfig.social[link.key]);
 
+  if (availableLinks.length === 0) {
+    return null;
+  }
+
   return (
     <section className="section-padding border-t border-line" aria-labelledby="social-heading">
       <div className="container-shell max-w-3xl text-center">
@@ -24,31 +28,25 @@ export function SocialSection() {
           Discover Voyage through stories, gifting moments and new collections.
         </p>
 
-        {availableLinks.length > 0 ? (
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            {availableLinks.map((link) => (
-              <li key={link.key}>
-                <a
-                  href={siteConfig.social[link.key]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary min-h-11 px-6 text-xs uppercase tracking-[0.14em]"
-                  onClick={() =>
-                    trackEvent("social_click", {
-                      platform: link.key,
-                    })
-                  }
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-6 text-xs text-muted">
-            Social links will appear here once configured.
-          </p>
-        )}
+        <ul className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          {availableLinks.map((link) => (
+            <li key={link.key}>
+              <a
+                href={siteConfig.social[link.key]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary min-h-11 px-6 text-xs uppercase tracking-[0.14em]"
+                onClick={() =>
+                  trackEvent("social_click", {
+                    platform: link.key,
+                  })
+                }
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

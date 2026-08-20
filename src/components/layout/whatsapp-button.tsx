@@ -17,7 +17,7 @@ export function WhatsAppButton() {
       aria-label="Contact VOYAGE on WhatsApp"
       onClick={() => analytics.track("whatsapp_click")}
     >
-      WA
+      <span aria-hidden="true">WA</span>
     </a>
   );
 }

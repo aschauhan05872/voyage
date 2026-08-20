@@ -54,7 +54,9 @@ export function CartDrawer() {
         className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[var(--warm-ivory)] shadow-2xl motion-safe:transition-transform"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <h2 className="display-font text-2xl text-brand">Added to Your Cart</h2>
+          <h2 className="display-font text-2xl text-brand">
+            {activeItems.length === 0 ? "Your Cart" : "Added to Your Cart"}
+          </h2>
           <button
             ref={closeButtonRef}
             type="button"
@@ -67,22 +69,39 @@ export function CartDrawer() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-6">
-          <ul className="space-y-8">
-            {activeItems.map((item) => (
-              <li key={item.productSlug}>
-                <CartLineItemView
-                  item={item}
-                  compact
-                  disabled={validating}
-                  onRemove={() => handleRemove(item)}
-                  onDecrease={() => handleDecrease(item)}
-                  onIncrease={() => handleIncrease(item)}
-                />
-              </li>
-            ))}
-          </ul>
+          {activeItems.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <p className="display-font text-2xl text-brand">Your collection awaits.</p>
+              <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+                Discover a meaningful birthstone piece for your journey or someone special.
+              </p>
+              <Link
+                href="/collections/birthstones"
+                onClick={closeDrawer}
+                className="btn-primary mt-8 inline-flex"
+              >
+                Explore the Birthstone Collection
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-8">
+              {activeItems.map((item) => (
+                <li key={item.productSlug}>
+                  <CartLineItemView
+                    item={item}
+                    compact
+                    disabled={validating}
+                    onRemove={() => handleRemove(item)}
+                    onDecrease={() => handleDecrease(item)}
+                    onIncrease={() => handleIncrease(item)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
+        {activeItems.length > 0 ? (
         <div className="border-t border-line px-5 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
           <CartSummary
             variant="drawer"
@@ -102,6 +121,7 @@ export function CartDrawer() {
             View Cart
           </Link>
         </div>
+        ) : null}
       </aside>
     </div>
   );

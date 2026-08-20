@@ -10,8 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/collections/birthstones",
     "/our-story",
-    "/gifts",
-    "/journal",
     ...staticPages.map((page) => `/${page.slug}`),
   ].map((path) => ({
     url: `${base}${path}`,
