@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CartHeaderLink } from "@/components/cart/cart-header-link";
 import { siteConfig } from "@/lib/config/site";
 
 const shopLinks = [
@@ -53,9 +54,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-4 text-sm uppercase tracking-[0.12em]">
-          <Link href="/cart" className="hover:text-accent" aria-label="View cart">
-            Cart
-          </Link>
+          <CartHeaderLink />
         </div>
       </div>
     </header>

@@ -12,7 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/our-story",
     "/gifts",
     "/journal",
-    "/cart",
     ...staticPages.map((page) => `/${page.slug}`),
   ].map((path) => ({
     url: `${base}${path}`,

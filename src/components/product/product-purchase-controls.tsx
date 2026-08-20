@@ -46,19 +46,27 @@ export function ProductPurchaseControls({
       {
         productSlug: product.slug,
         productId: product.id,
+        sku: product.sku,
         name: product.name,
         price: product.price,
         imageUrl: product.imageUrl,
+        month: product.month,
+        gemstone: product.gemstone,
+        material: product.material,
       },
       quantity,
+      { openDrawer: !redirectToCheckout },
     );
 
     trackEvent("add_to_cart", {
       product_id: product.id,
       product_name: product.name,
+      sku: product.sku,
       price: product.price,
       quantity,
       currency: siteConfig.currency,
+      gemstone: product.gemstone,
+      birth_month: product.month,
     });
 
     setAdded(true);
@@ -68,6 +76,8 @@ export function ProductPurchaseControls({
         product_id: product.id,
         product_name: product.name,
         quantity,
+        cart_value: product.price * quantity,
+        currency: siteConfig.currency,
       });
       router.push("/checkout");
       return;

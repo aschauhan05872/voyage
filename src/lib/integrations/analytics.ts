@@ -13,6 +13,7 @@ export type AnalyticsEvent =
   | "add_to_cart"
   | "remove_from_cart"
   | "view_cart"
+  | "cart_quantity_updated"
   | "begin_checkout"
   | "payment_started"
   | "purchase"
